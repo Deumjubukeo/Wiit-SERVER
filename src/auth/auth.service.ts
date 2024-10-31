@@ -19,16 +19,18 @@ export class AuthService {
       throw new HttpException('비밀번호는 필수입니다.', HttpStatus.BAD_REQUEST);
     }
 
-    const hashedPassword = await bcrypt.hash(registrationData.password, 10);
+    const hashedPassword = await bcrypt.hash(registrationData.password, 5);
 
     try {
       const createdUser = await this.usersService.create({
         ...registrationData,
         password: hashedPassword,
+        imageUrl: registrationData.imageUrl ? registrationData.imageUrl : '',
       });
-      createdUser.password = undefined; // 비밀번호 숨기기
+      createdUser.password = undefined;
       return createdUser;
-    } catch (error) {
+    } catch (e) {
+      console.error(e);
       throw new HttpException(
         '사용자 ID 또는 전화번호가 이미 존재합니다.',
         HttpStatus.BAD_REQUEST,
@@ -63,7 +65,7 @@ export class AuthService {
   public getCookieWithJwtToken(userId: string) {
     const payload: TokenPayload = { userId };
     const token = this.jwtService.sign(payload, {
-      expiresIn: '1h', // 만료 시간 설정
+      expiresIn: '1d', // 만료 시간 설정
     });
     return token;
   }

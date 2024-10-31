@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import CreateUserDto from './dto/createUser.dto';
+import { RegisterDto } from '../auth/dto/register.dto';
 
 @Injectable()
 export class UsersService {
@@ -24,7 +24,27 @@ export class UsersService {
     );
   }
 
-  async create(userData: { password: string; name: string; email: string }) {
+  async create(userData: RegisterDto): Promise<User> {
+    const existingUserById = await this.usersRepository.findOne({
+      where: { userId: userData.userId },
+    });
+    if (existingUserById) {
+      throw new HttpException(
+        '사용자 ID가 이미 존재합니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const existingUserByPhone = await this.usersRepository.findOne({
+      where: { phoneNumber: userData.phoneNumber },
+    });
+    if (existingUserByPhone) {
+      throw new HttpException(
+        '전화번호가 이미 존재합니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const newUser = this.usersRepository.create(userData);
     await this.usersRepository.save(newUser);
     return newUser;
