@@ -64,9 +64,6 @@ export class GoodsController {
             createdAt: '2024-10-31T03:15:43.000Z',
           },
         ],
-        total: 50,
-        page: 1,
-        size: 10,
       },
     },
   })
