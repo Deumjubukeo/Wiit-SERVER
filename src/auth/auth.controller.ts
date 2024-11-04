@@ -32,10 +32,10 @@ export class AuthController {
       body.password,
     );
     const accessToken = this.authService.getCookieWithJwtToken(user.userId);
-    const refreshToken = this.authService.getCookieWithRefreshToken(
-      user.userId,
-    );
-    return { accessToken, refreshToken };
+    const refreshToken = this.authService.getCookieWithRefreshToken(user.userId);
+    if (user.userId) {
+      return { accessToken, refreshToken };
+    }
   }
 
   @Post('refresh')
