@@ -40,7 +40,7 @@ export class AuthService {
 
   public async getAuthenticatedUser(userId: string, plainTextPassword: string) {
     try {
-      const user = await this.usersService.getById(userId);
+      const user = await this.usersService.findOne(userId);
       await this.verifyPassword(plainTextPassword, user.password);
       user.password = undefined;
       return user;
@@ -58,24 +58,21 @@ export class AuthService {
   ) {
     const isPasswordMatching = await bcrypt.compare(plainTextPassword, hashedPassword);
     if (!isPasswordMatching) {
-      throw new HttpException('잘못된 인증 정보입니다.', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        '잘못된 인증 정보입니다.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
-  public getCookieWithJwtToken(userId: string) {
-    const payload: TokenPayload = { userId };
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '1d', // 만료 시간 설정
-    });
-    return token;
+  public getCookieWithJwtToken(id: string) {
+    const payload: TokenPayload = { id };
+    return this.jwtService.sign(payload, { expiresIn: '1d' });
   }
 
-  public getCookieWithRefreshToken(userId: string) {
-    const payload: TokenPayload = { userId };
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '7d', // 만료 시간 설정
-    });
-    return token;
+  public getCookieWithRefreshToken(id: string) {
+    const payload: TokenPayload = { id };
+    return this.jwtService.sign(payload, { expiresIn: '7d' });
   }
 
   public verifyRefreshToken(token: string) {
@@ -91,9 +88,9 @@ export class AuthService {
     }
   }
 
-  public async refreshTokens(userId: string) {
-    const accessToken = this.getCookieWithJwtToken(userId);
-    const refreshToken = this.getCookieWithRefreshToken(userId);
+  public async refreshTokens(id: string) {
+    const accessToken = this.getCookieWithJwtToken(id);
+    const refreshToken = this.getCookieWithRefreshToken(id);
     return {
       accessToken,
       refreshToken,
