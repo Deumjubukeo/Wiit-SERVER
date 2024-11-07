@@ -19,16 +19,18 @@ export class AuthService {
       throw new HttpException('비밀번호는 필수입니다.', HttpStatus.BAD_REQUEST);
     }
 
-    const hashedPassword = await bcrypt.hash(registrationData.password, 10);
+    const hashedPassword = await bcrypt.hash(registrationData.password, 5);
 
     try {
       const createdUser = await this.usersService.create({
         ...registrationData,
         password: hashedPassword,
+        imageUrl: registrationData.imageUrl ? registrationData.imageUrl : '',
       });
-      createdUser.password = undefined; // 비밀번호 숨기기
+      createdUser.password = undefined;
       return createdUser;
-    } catch (error) {
+    } catch (e) {
+      console.error(e);
       throw new HttpException(
         '사용자 ID 또는 전화번호가 이미 존재합니다.',
         HttpStatus.BAD_REQUEST,
@@ -38,7 +40,7 @@ export class AuthService {
 
   public async getAuthenticatedUser(userId: string, plainTextPassword: string) {
     try {
-      const user = await this.usersService.getById(userId);
+      const user = await this.usersService.findOne(userId);
       await this.verifyPassword(plainTextPassword, user.password);
       user.password = undefined;
       return user;
@@ -56,24 +58,21 @@ export class AuthService {
   ) {
     const isPasswordMatching = await bcrypt.compare(plainTextPassword, hashedPassword);
     if (!isPasswordMatching) {
-      throw new HttpException('잘못된 인증 정보입니다.', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        '잘못된 인증 정보입니다.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
-  public getCookieWithJwtToken(userId: string) {
-    const payload: TokenPayload = { userId };
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '1h', // 만료 시간 설정
-    });
-    return token;
+  public getCookieWithJwtToken(id: string) {
+    const payload: TokenPayload = { id };
+    return this.jwtService.sign(payload, { expiresIn: '1d' });
   }
 
-  public getCookieWithRefreshToken(userId: string) {
-    const payload: TokenPayload = { userId };
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '7d', // 만료 시간 설정
-    });
-    return token;
+  public getCookieWithRefreshToken(id: string) {
+    const payload: TokenPayload = { id };
+    return this.jwtService.sign(payload, { expiresIn: '7d' });
   }
 
   public verifyRefreshToken(token: string) {
@@ -89,9 +88,9 @@ export class AuthService {
     }
   }
 
-  public async refreshTokens(userId: string) {
-    const accessToken = this.getCookieWithJwtToken(userId);
-    const refreshToken = this.getCookieWithRefreshToken(userId);
+  public async refreshTokens(id: string) {
+    const accessToken = this.getCookieWithJwtToken(id);
+    const refreshToken = this.getCookieWithRefreshToken(id);
     return {
       accessToken,
       refreshToken,

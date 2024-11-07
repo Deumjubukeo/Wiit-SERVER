@@ -31,11 +31,11 @@ export class AuthController {
       body.userId,
       body.password,
     );
-    const accessToken = this.authService.getCookieWithJwtToken(user.userId);
-    const refreshToken = this.authService.getCookieWithRefreshToken(
-      user.userId,
-    );
-    return { accessToken, refreshToken };
+    const accessToken = this.authService.getCookieWithJwtToken(user.id);
+    const refreshToken = this.authService.getCookieWithRefreshToken(user.id);
+    if (user.userId) {
+      return { accessToken, refreshToken };
+    }
   }
 
   @Post('refresh')
