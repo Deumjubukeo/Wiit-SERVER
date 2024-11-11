@@ -9,8 +9,8 @@ import {
   Query,
   ParseIntPipe,
   Delete,
-  Param,
   HttpCode,
+  Param,
 } from '@nestjs/common';
 import { GoodsService } from './goods.service';
 import { CreateGoodsDto } from './dto/createGoods.dto';
@@ -40,12 +40,12 @@ export class GoodsController {
     return response.status(201).json(newGoods);
   }
   //상품구매
-  @Post('purchase/:id')
+  @Post('purchase')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '상품 구매' })
   @ApiResponse({ status: 200, description: '상품 구매 성공', type: Goods })
   async purchaseGoods(
-    @Param('id', ParseIntPipe) id: number,
+    @Query('id', ParseIntPipe) id: number,
     @Query('userId') userId: string,
   ): Promise<Goods> {
     return this.goodsService.purchaseGoods(id, userId);
@@ -119,7 +119,7 @@ export class GoodsController {
   @ApiResponse({ status: 401, description: '관리자 권한이 필요합니다.' })
   @HttpCode(200)
   async deleteGoods(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: number,
     @Req() req,
     @Res() res: Response,
   ): Promise<void> {
