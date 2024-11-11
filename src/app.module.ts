@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { GoodsModule } from './goods/goods.module';
 import { JwtModule } from '@nestjs/jwt';
 import { LostStuffModule } from './lostStuff/lostStuff.module';
 
@@ -34,12 +35,12 @@ import { LostStuffModule } from './lostStuff/lostStuff.module';
     }),
     AuthModule,
     UsersModule,
+    GoodsModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME },
     }),
     LostStuffModule,
   ],
-  providers: [],
 })
 export class AppModule {}
