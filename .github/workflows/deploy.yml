@@ -49,7 +49,8 @@ jobs:
           port: ${{ secrets.PORT }}
           source: "./chagok.zip"
           target: "/home/ec2-user/www/WiiT"
-      - name: SSH into EC2 and unzip, install dependencies, start with PM2
+
+      - name: SSH into EC2, unzip, install dependencies, and start server
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         run: |
@@ -57,7 +58,8 @@ jobs:
           chmod 600 private_key.pem
           ssh -i private_key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.HOST }} "
             cd /home/ec2-user/www/WiiT &&
+            rm -rf * &&
             unzip -o ./chagok.zip &&
             npm install --production &&
-            pm2 restart WiiT || pm2 start yarn --name WiiT -- start
+            npm start
           "
