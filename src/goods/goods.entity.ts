@@ -16,7 +16,7 @@ export class Goods {
   @Column()
   content: string;
 
-  @Column()
+  @Column({ default: 0 })
   prize: number;
 
   @Column()

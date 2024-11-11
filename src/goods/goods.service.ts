@@ -1,11 +1,9 @@
 import {
-  Get,
   HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -18,6 +16,8 @@ export class GoodsService {
   constructor(
     @InjectRepository(Goods)
     private goodsRepository: Repository<Goods>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   // 상품 생성
@@ -39,30 +39,52 @@ export class GoodsService {
     }
   }
   // 상품 구매
-  async purchaseGoods(id: number): Promise<Goods> {
-    const goods = await this.goodsRepository.findOne({ where: { id } });
-    if (!goods) {
-      throw new NotFoundException('상품을 찾을 수 없습니다.');
-    }
+  async purchaseGoods(id: number, userId: string): Promise<Goods> {
+    try {
+      const goods = await this.goodsRepository.findOne({ where: { id } });
+      if (!goods) {
+        throw new NotFoundException('상품을 찾을 수 없습니다.');
+      }
+      const user = await this.userRepository.findOne({
+        where: { userId: userId },
+      });
+      if (!user) {
+        throw new NotFoundException('사용자를 찾을 수 없습니다.');
+      }
+      if (user.point < goods.prize) {
+        throw new UnauthorizedException('포인트가 부족합니다.');
+      }
 
-    goods.purchaseCount += 1;
-    return this.goodsRepository.save(goods);
+      user.point -= goods.prize;
+      goods.purchaseCount += 1;
+
+      await this.userRepository.save(user);
+      return this.goodsRepository.save(goods);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(`${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
   //인기상품
   async getPopularGoods(
     page: number,
     size: number,
   ): Promise<{ data: Goods[]; total: number; page: number; size: number }> {
-    const [goods, total] = await this.goodsRepository.findAndCount({
-      order: {
-        purchaseCount: 'DESC',
-        createdAt: 'DESC',
-      },
-      take: size,
-      skip: (page - 1) * size,
-    });
+    try {
+      const [goods, total] = await this.goodsRepository.findAndCount({
+        order: {
+          purchaseCount: 'DESC',
+          createdAt: 'DESC',
+        },
+        take: size,
+        skip: (page - 1) * size,
+      });
 
-    return { data: goods, total, page, size };
+      return { data: goods, total, page, size };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(`${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
   //상품 불러오기
   async getGoods(

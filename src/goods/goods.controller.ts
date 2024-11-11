@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Delete,
   Param,
+  HttpCode,
 } from '@nestjs/common';
 import { GoodsService } from './goods.service';
 import { CreateGoodsDto } from './dto/createGoods.dto';
@@ -39,12 +40,15 @@ export class GoodsController {
     return response.status(201).json(newGoods);
   }
   //상품구매
-  @Post(':id/purchase')
+  @Post('purchase/:id')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '상품 구매' })
   @ApiResponse({ status: 200, description: '상품 구매 성공', type: Goods })
-  async purchaseGoods(@Param('id', ParseIntPipe) id: number): Promise<Goods> {
-    return this.goodsService.purchaseGoods(id);
+  async purchaseGoods(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('userId') userId: string,
+  ): Promise<Goods> {
+    return this.goodsService.purchaseGoods(id, userId);
   }
   //인기 상품 불러오기
   @Get('popular')
@@ -64,11 +68,21 @@ export class GoodsController {
             createdAt: '2024-10-31T03:15:43.000Z',
           },
         ],
+        total: 1,
+        page: 1,
+        size: 10,
       },
     },
   })
+  async getPopularGoods(
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('size', ParseIntPipe) size: number = 10,
+  ): Promise<{ data: Goods[]; total: number; page: number; size: number }> {
+    return this.goodsService.getPopularGoods(page, size);
+  }
+
   //상품 불러오기
-  @Get()
+  @Get('list')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '상품 목록 조회' })
   @ApiResponse({
@@ -85,6 +99,9 @@ export class GoodsController {
             createdAt: '2024-10-31T03:15:43.000Z',
           },
         ],
+        total: 1,
+        page: 1,
+        size: 10,
       },
     },
   })
@@ -94,18 +111,21 @@ export class GoodsController {
   ): Promise<{ data: Goods[]; total: number; page: number; size: number }> {
     return this.goodsService.getGoods(page, size);
   }
-
+  //상품 삭제
   @Delete(':id')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '상품 삭제' })
   @ApiResponse({ status: 200, description: '상품 삭제 성공' })
   @ApiResponse({ status: 401, description: '관리자 권한이 필요합니다.' })
+  @HttpCode(200)
   async deleteGoods(
     @Param('id', ParseIntPipe) id: number,
     @Req() req,
+    @Res() res: Response,
   ): Promise<void> {
     const user = req.user;
 
-    return this.goodsService.deleteGoods(id, user);
+    await this.goodsService.deleteGoods(id, user);
+    res.json({ status: 200, message: '상품 삭제 성공' });
   }
 }
