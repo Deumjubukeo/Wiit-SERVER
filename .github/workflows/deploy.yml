@@ -58,8 +58,7 @@ jobs:
           chmod 600 private_key.pem
           ssh -i private_key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.HOST }} "
             cd /home/ec2-user/www/WiiT &&
-            ls -l chagok.zip &&  
             unzip -o ./chagok.zip &&
             npm install --production &&
-            npm start
+            pm2 restart WiiT || pm2 start npm --name WiiT -- start
           "
