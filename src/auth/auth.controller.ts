@@ -47,7 +47,6 @@ export class AuthController {
       );
     }
 
-    // 리프레시 토큰을 검증하고 새 토큰 발급
     const userId = this.authService.verifyRefreshToken(body.refreshToken);
     const tokens = await this.authService.refreshTokens(userId);
 

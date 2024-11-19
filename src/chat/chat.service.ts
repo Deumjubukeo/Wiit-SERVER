@@ -22,14 +22,14 @@ export class ChatService {
   ) {}
 
   async createChat(requesterId: string, lostStuffId: number) {
-    const requester = await this.usersService.findOne(requesterId);
+    const requester = await this.usersService.findOne(requesterId, true, true);
     const lostStuff = await this.lostStuffService.findOne(lostStuffId);
 
     console.log(requesterId);
     console.log(requester.userId);
     console.log(lostStuff.createUser.userId);
 
-    if (lostStuff.createUser.userId == requesterId) {
+    if (lostStuff.createUser.userId == requester.userId) {
       console.log('same');
       throw new ForbiddenException('자신의 게시물에는 채팅을 할 수 없습니다.');
     }
@@ -37,7 +37,7 @@ export class ChatService {
     const existingChat = await this.chatRepository.findOne({
       where: {
         lostStuff: { id: lostStuffId },
-        requester: { userId: requesterId },
+        requester: { userId: requester.userId },
       },
     });
 
@@ -49,7 +49,7 @@ export class ChatService {
       lostStuff,
       writer: lostStuff.createUser,
       requester,
-      currentUsers: [lostStuff.createUser.userId, requesterId],
+      currentUsers: [lostStuff.createUser.userId, requester.userId ],
     });
 
     return await this.chatRepository.save(chat);
@@ -67,11 +67,13 @@ export class ChatService {
       ],
     });
 
+    const user = await this.usersService.findOne(userId, true, true);
+
     if (!chat) {
       throw new NotFoundException('채팅방을 찾을 수 없습니다.');
     }
 
-    if (chat.writer.userId !== userId && chat.requester.userId !== userId) {
+    if (chat.writer.userId !== userId && chat.requester.userId !== user.userId) {
       throw new ForbiddenException('접근 권한이 없습니다.');
     }
 
@@ -96,7 +98,10 @@ export class ChatService {
 
   async getUserChats(userId: string) {
     const chats = await this.chatRepository.find({
-      where: [{ writer: { userId } }, { requester: { userId } }],
+      where: [
+        { writer: { id: Number(userId) } },
+        { requester: { id: Number(userId) } },
+      ],
       relations: [
         'lostStuff',
         'lostStuff.createUser',
@@ -118,7 +123,7 @@ export class ChatService {
         createUser: { ...chat.lostStuff.createUser, password: null },
       },
       unreadCount: chat.messages.filter(
-        (msg) => !msg.isRead && msg.sender.userId !== userId,
+        (msg) => !msg.isRead && msg.sender.id !== Number(userId),
       ).length,
     }));
   }
@@ -135,17 +140,25 @@ export class ChatService {
   }
 
   async createMessage({
-    data,
-  }: {
+                        data,
+                      }: {
     data: {
       chat: Chat;
       content: string;
-      sender: { userId: string };
+      sender: { id: number } | { userId: string };  // 두 가지 형태 모두 지원
       type: MessageType;
     };
   }) {
-    // 먼저 sender User 엔티티를 가져옵니다
-    const sender = await this.usersService.findOne(data.sender.userId);
+    let senderId: string;
+
+    // sender 객체 형태에 따라 적절히 처리
+    if ('userId' in data.sender) {
+      senderId = data.sender.userId;
+    } else {
+      senderId = data.sender.id.toString();
+    }
+
+    const sender = await this.usersService.findOne(senderId, true, false);
     if (!sender) {
       throw new NotFoundException('Sender not found');
     }
@@ -154,7 +167,7 @@ export class ChatService {
       chat: data.chat,
       content: data.content,
       type: data.type,
-      sender: sender,
+      sender,
       isRead: false,
     });
 
@@ -162,13 +175,23 @@ export class ChatService {
   }
 
   async updateMessageStatus(chatId: number, userId: string) {
-    await this.messageRepository.update(
-      {
+    const messages = await this.messageRepository.find({
+      where: {
         chat: { id: chatId },
-        sender: { userId: Not(userId) },
         isRead: false,
       },
-      { isRead: true },
+      relations: ['sender'],
+    });
+
+    const messagesToUpdate = messages.filter(
+      (message) => message.sender.userId !== userId,
     );
+
+    if (messagesToUpdate.length > 0) {
+      await this.messageRepository.update(
+        messagesToUpdate.map((msg) => msg.id),
+        { isRead: true },
+      );
+    }
   }
 }
