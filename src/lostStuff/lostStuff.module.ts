@@ -1,16 +1,19 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LostStuff } from './lostStuff.entity';
 import { LostStuffService } from './lostStuff.service';
 import { LostStuffController } from './lostStuff.controller';
-import { AuthModule } from '../auth/auth.module'; // AuthModule import
+import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([LostStuff]),
-    AuthModule,
+    forwardRef(() => AuthModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [LostStuffController],
   providers: [LostStuffService],
+  exports: [LostStuffService],
 })
 export class LostStuffModule {}
