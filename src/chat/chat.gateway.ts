@@ -21,32 +21,51 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private connectedUsers: Map<string, Socket> = new Map();
 
   handleConnection(client: Socket) {
+    console.log('Client connected:', client.id);
+    console.log('Query params:', client.handshake.query);
+
     const userId = client.handshake.query.userId as string;
     if (userId) {
       this.connectedUsers.set(userId, client);
+      console.log('Connected users:', this.connectedUsers.keys());
     }
   }
 
   handleDisconnect(client: Socket) {
+    console.log('Client disconnected:', client.id);
     const userId = client.handshake.query.userId as string;
     if (userId) {
       this.connectedUsers.delete(userId);
+      console.log('Remaining users:', this.connectedUsers.keys());
     }
   }
 
   @SubscribeMessage('join')
   async joinRoom(client: Socket, payload: { chatId: number; userId: string }) {
+    console.log('Join event received:', payload);
     try {
-      const chat = await this.chatService.getChatById(payload.chatId);
+      // userId가 'test2'인 경우의 특별 처리
+      if(payload.userId === 'test2') {
+        console.log('Test2 user joining room:', payload.chatId);
+      }
 
-      if (!chat) return;
+      const chat = await this.chatService.getChatById(payload.chatId);
+      console.log('Found chat:', chat?.id);
+
+      if (!chat) {
+        console.log('Chat not found');
+        return;
+      }
 
       if (!chat.currentUsers.includes(payload.userId)) {
+        console.log('Adding user to currentUsers');
         chat.currentUsers.push(payload.userId);
         await this.chatService.updateChat(chat);
       }
 
       client.join(payload.chatId.toString());
+      console.log('Client joined room:', payload.chatId);
+
       await this.chatService.updateMessageStatus(
         payload.chatId,
         payload.userId,
@@ -57,6 +76,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         chat.writer.userId === payload.userId
           ? chat.requester.userId
           : chat.writer.userId;
+      console.log('Notifying other user:', otherUserId);
 
       const otherUserSocket = this.connectedUsers.get(otherUserId);
       if (otherUserSocket) {
@@ -64,8 +84,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           chatId: payload.chatId,
           userId: payload.userId,
         });
+        console.log('Notification sent to other user');
       }
+
+      // 클라이언트에게 성공 응답
+      client.emit('joinSuccess', {
+        chatId: payload.chatId,
+        userId: payload.userId,
+      });
     } catch (error) {
+      console.error('Error in joinRoom:', error);
       client.emit('error', { message: error.message });
     }
   }
@@ -75,13 +103,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client: Socket,
     payload: {
       chatId: number;
-      senderId: string;
+      senderId: string;  // string 타입 유지
       content: string;
       type: MessageType;
     },
   ) {
     try {
-      console.log(payload);
+      console.log('Message payload:', payload);
       const chat = await this.chatService.getChatById(payload.chatId);
 
       if (!chat || chat.isEnded) {
@@ -98,11 +126,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
+      console.log('Created message:', message);
+
       this.server.to(payload.chatId.toString()).emit('message', {
         ...message,
         sender: { ...message.sender, password: null },
       });
     } catch (error) {
+      console.error('Error in handleMessage:', error);
       client.emit('error', { message: error.message });
     }
   }

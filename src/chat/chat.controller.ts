@@ -17,21 +17,21 @@ export class ChatController {
   @Post()
   @UseGuards(AuthGuard)
   async createChat(@Req() request, @Body() body: { lostStuffId: number }) {
-    const requesterId = request.user.userId;
+    const requesterId = request.user.id;
     return await this.chatService.createChat(requesterId, body.lostStuffId);
   }
 
   @Get('messages')
   @UseGuards(AuthGuard)
   async getChatMessages(@Query('chatId') chatId: number, @Req() request) {
-    const userId = request.user.userId;
+    const userId = request.user.id;
     return await this.chatService.getChatMessages(chatId, userId);
   }
 
   @Get()
   @UseGuards(AuthGuard)
   async getUserChats(@Req() request) {
-    const userId = request.user.userId;
+    const userId = request.user.id;
     return await this.chatService.getUserChats(userId);
   }
 }

@@ -18,9 +18,10 @@ export class AuthGuard implements CanActivate {
       const payload = this.jwtService.verify(token); // 토큰 검증
       request.user = payload;
       return true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException('유효하지 않은 인증 토큰입니다.');
     }
   }
 }
-
