@@ -14,7 +14,7 @@ async function bootstrap() {
     .build();
 
   app.enableCors({
-    origin: ['http://localhost:3000'], // React 앱의 URL
+    origin: true,
     credentials: true,
   });
 
