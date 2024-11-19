@@ -27,7 +27,7 @@ export class LostStuff {
   createUser: User;
 
   @Column()
-  where: string;
+  region: string;
 
   @Column()
   imageUrl: string;
