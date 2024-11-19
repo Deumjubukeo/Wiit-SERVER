@@ -15,7 +15,7 @@ export class LostStuffController {
   }
 
   @UseGuards(AuthGuard)
-  @Get()
+  @Get(':id')
   async find(@Query('id') id?: number, @Query('keyword') keyword?: string) {
     if (id) {
       return this.lostStuffService.findOne(id);
@@ -29,14 +29,21 @@ export class LostStuffController {
   }
 
   @UseGuards(AuthGuard)
-  @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateLostStuffDto: UpdateLostStuffDto) {
-    return this.lostStuffService.update(id, updateLostStuffDto);
+  @Patch()
+  async update(@Query('id') id: number, @Body() body: UpdateLostStuffDto) {
+    return this.lostStuffService.update(id, body);
   }
 
   @UseGuards(AuthGuard)
-  @Delete(':id')
-  async delete(@Param('id') id: number) {
+  @Delete()
+  async delete(@Query('id') id: number) {
     return this.lostStuffService.delete(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('my-stuff')
+  async findUserCreatedStuff(@Req() request) {
+    const userId = request.user.id;
+    return this.lostStuffService.findUserCreatedStuff(userId);
   }
 }

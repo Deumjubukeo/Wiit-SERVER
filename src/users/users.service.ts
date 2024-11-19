@@ -11,22 +11,26 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async getById(userId: string) {
+  async getById(userId: string): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { userId: userId },
     });
-    if (user) {
-      return user;
+    if (!user) {
+      throw new HttpException(
+        '사용자가 존재하지 않습니다.',
+        HttpStatus.NOT_FOUND,
+      );
     }
-    throw new HttpException(
-      '사용자가 존재하지 않습니다.',
-      HttpStatus.NOT_FOUND,
-    );
+    return user;
   }
 
-  async create(userData: { password: string; name: string; email: string }) {
-    const newUser = this.usersRepository.create(userData);
-    await this.usersRepository.save(newUser);
-    return newUser;
+  async create(userData: CreateUserDto) {
+    const newUser = this.usersRepository.create({
+      userId: userData.userId,
+      name: userData.name,
+      password: userData.password,
+      phoneNumber: userData.phoneNumber,
+    });
+    return await this.usersRepository.save(newUser);
   }
 }

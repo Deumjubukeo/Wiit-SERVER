@@ -25,22 +25,20 @@ export class LostStuffService {
   }
 
   async findOne(id: number): Promise<LostStuff> {
-    const [result] = await Promise.all([
-      this.lostStuffRepository
-        .createQueryBuilder('lostStuff')
-        .leftJoinAndSelect('lostStuff.createUser', 'user'),
-    ]);
-    result.where('lostStuff.id = :id', { id });
+    const stuff = await this.lostStuffRepository
+      .createQueryBuilder('lostStuff')
+      .leftJoinAndSelect('lostStuff.createUser', 'user')
+      .where('lostStuff.id = :id', { id })
+      .getOne();
 
-    const stuff = await result.getOne();
-    // const stuff = await this.lostStuffRepository.findOne({
-    //   where: { id },
-    //   relations: ['createUser'],
-    // });
     if (!stuff) {
       throw new NotFoundException('물품을 찾을 수 없습니다.');
     }
-    return { ...stuff, createUser: { ...stuff.createUser, password: null } };
+
+    return {
+      ...stuff,
+      createUser: { ...stuff.createUser, password: null },
+    };
   }
 
   async findAll(): Promise<LostStuff[]> {
@@ -54,7 +52,9 @@ export class LostStuffService {
   }
 
   async findByCriteria(criteria: { name?: string; description?: string }) {
-    const query = this.lostStuffRepository.createQueryBuilder('lostStuff').leftJoinAndSelect('lostStuff.createUser', 'user');
+    const query = this.lostStuffRepository
+      .createQueryBuilder('lostStuff')
+      .leftJoinAndSelect('lostStuff.createUser', 'user');
 
     if (criteria.name) {
       query.andWhere('lostStuff.name LIKE :name', {
@@ -84,5 +84,18 @@ export class LostStuffService {
 
   async delete(id: number): Promise<void> {
     await this.lostStuffRepository.delete(id);
+  }
+
+  async findUserCreatedStuff(userId: number): Promise<LostStuff[]> {
+    const result = await this.lostStuffRepository
+      .createQueryBuilder('lostStuff')
+      .leftJoinAndSelect('lostStuff.createUser', 'user')
+      .where('user.id = :userId', { userId })
+      .getMany();
+
+    return result.map((stuff: LostStuff) => ({
+      ...stuff,
+      createUser: { ...stuff.createUser, password: null },
+    }));
   }
 }

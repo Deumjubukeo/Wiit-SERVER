@@ -13,4 +13,4 @@ export class User {
 
   @Column({ unique: true })
   public phoneNumber: string;
-};
+}

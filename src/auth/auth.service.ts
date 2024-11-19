@@ -25,6 +25,7 @@ export class AuthService {
       const createdUser = await this.usersService.create({
         ...registrationData,
         password: hashedPassword,
+        phoneNumber: registrationData.phoneNumber,
       });
       createdUser.password = undefined; // 비밀번호 숨기기
       return createdUser;
