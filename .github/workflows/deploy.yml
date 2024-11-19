@@ -1,0 +1,64 @@
+name: Deploy WiiT-Server
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create .env
+        run: |
+          echo "DB_HOST=${{ secrets.HOST }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }}" >> .env
+
+      - name: Build Next.js project
+        run: npm run build
+
+      - name: Make zip file
+        run: zip -qq -r ./chagok.zip . -x "node_modules/*"
+
+      - name: Deploy zip to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          source: "./chagok.zip"
+          target: "/home/ec2-user/www/WiiT"
+
+      - name: SSH into EC2, unzip, install dependencies, and start server
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          echo "${PRIVATE_KEY}" > private_key.pem
+          chmod 600 private_key.pem
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.HOST }} "
+            cd /home/ec2-user/www/WiiT &&
+            unzip -o ./chagok.zip &&
+            npm install --production &&
+            pm2 restart WiiT || pm2 start npm --name WiiT -- start
+          "

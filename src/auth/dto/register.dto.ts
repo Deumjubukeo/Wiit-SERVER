@@ -7,8 +7,10 @@ export class RegisterDto {
   name: string;
   @ApiProperty({ description: '비밀번호' })
   password: string;
-  @ApiProperty({ description: '사용자@이메일' })
+  @ApiProperty({ description: '전화번호' })
   phoneNumber: string;
+  @ApiProperty({ description: '프로필사진' })
+  imageUrl?: string;
 }
 
 export default RegisterDto;

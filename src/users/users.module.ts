@@ -13,5 +13,6 @@ import { AuthModule } from "../auth/auth.module"; // LostStuffModule 임포트 �
   ],
   providers: [UsersService],
   exports: [UsersService, TypeOrmModule],
+  controllers: [UsersController],
 })
 export class UsersModule {}
