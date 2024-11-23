@@ -5,13 +5,18 @@ import {
   Patch,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { UpdateUserDto } from './dto/updateUser.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { LostStuffService } from '../lostStuff/lostStuff.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 
 @ApiTags('User')
 @Controller('users')
@@ -45,11 +50,28 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
-  @Patch()
-  @ApiOperation({ summary: '사용자 프로필 편집' })
+  @Patch('/profile')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const fileExtName = file.originalname.split('.').pop();
+          const fileName = `${uuidv4()}.${fileExtName}`;
+          callback(null, fileName);
+        },
+      }),
+    }),
+  )
+  @ApiOperation({ summary: '사용자 프로필 이미지 편집' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: '사용자 프로필 이미지 및 기타 정보 업데이트',
+    type: UpdateUserDto,
+  })
   @ApiResponse({
     status: 200,
-    description: '사용자 프로필 편집 성공',
+    description: '사용자 프로필 이미지 편집 성공',
     schema: {
       example: {
         id: 1,
@@ -58,12 +80,21 @@ export class UsersController {
         phoneNumber: '010-1234-5678',
         point: 120,
         temperature: 37.5,
+        imageUrl: 'uploads/uuid.jpg',
       },
     },
   })
   @ApiResponse({ status: 400, description: '잘못된 인증 정보' })
-  async patch(@Req() request, @Body() updateLostStuffDto: UpdateUserDto) {
-    return this.usersService.update(request.user.id, updateLostStuffDto);
+  async patch(
+    @Req() request,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (file) {
+      updateUserDto.imageUrl = file.path;
+    }
+
+    return this.usersService.updateProfileImage(request.user.id, updateUserDto);
   }
 
   @UseGuards(AuthGuard)
@@ -80,6 +111,7 @@ export class UsersController {
           email: 'mango@Philippines.com',
           point: 100,
           temperature: 36.5,
+          imageUrl: 'string',
         },
         mylostStuff: [
           {
@@ -106,6 +138,7 @@ export class UsersController {
         email: user.email,
         point: user.point,
         temperature: user.temperature,
+        imageUrl: user.imageUrl,
       },
       mylostStuff: lostStuff.filter((item) => item.createUser.id === user.id),
     };

@@ -17,7 +17,7 @@ export class Goods {
   content: string;
 
   @Column({ default: 0 })
-  prize: number;
+  price: number;
 
   @Column()
   imageUrl: string;

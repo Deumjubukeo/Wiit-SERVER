@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, UseGuards, Req, Query } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  UseGuards,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { LostStuffService } from './lostStuff.service';
 import { CreateLostStuffDto } from './dto/createLostStuff.dto';
 import { UpdateLostStuffDto } from './dto/updateLostStuff.dto';
@@ -30,7 +41,10 @@ export class LostStuffController {
 
   @UseGuards(AuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateLostStuffDto: UpdateLostStuffDto) {
+  async update(
+    @Param('id') id: number,
+    @Body() updateLostStuffDto: UpdateLostStuffDto,
+  ) {
     return this.lostStuffService.update(id, updateLostStuffDto);
   }
 
