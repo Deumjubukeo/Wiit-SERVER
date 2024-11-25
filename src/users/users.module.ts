@@ -3,7 +3,8 @@ import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { LostStuffModule } from '../lostStuff/lostStuff.module';
-import { AuthModule } from '../auth/auth.module'; // LostStuffModule 임포트 추가
+import { AuthModule } from '../auth/auth.module';
+import { UsersController } from './users.controller';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { AuthModule } from '../auth/auth.module'; // LostStuffModule 임포트 �
     forwardRef(() => AuthModule),
     forwardRef(() => LostStuffModule),
   ],
+  controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService, TypeOrmModule],
 })

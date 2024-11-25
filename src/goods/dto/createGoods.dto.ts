@@ -1,15 +1,19 @@
-import { ApiProperty } from '@nestjs/swagger';
+// @ts-ignore
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateGoodsDto {
-  @ApiProperty({ description: '제목' })
+  @IsString()
   title: string;
 
-  @ApiProperty({ description: '내용' })
+  @IsString()
   content: string;
 
-  @ApiProperty({ description: '가격' })
-  pize: number;
+  @IsNumber()
+  price: number;
 
-  @ApiProperty({ description: '이미지' })
-  imageUrl: string;
+  @IsOptional()
+  imageUrl?: string;
+
+  @IsNumber()
+  purchaseCount: number;
 }
