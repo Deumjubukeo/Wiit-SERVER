@@ -36,6 +36,13 @@ export class UsersService {
     );
   }
 
+  async updatePurchaseQrUrl(userId: number, qrCodeUrl: string): Promise<void> {
+    await this.usersRepository.update(
+      { id: userId },
+      { purchaseQrUrl: qrCodeUrl },
+    );
+  }
+
   async create(userData: RegisterDto): Promise<User> {
     const existingUserById = await this.usersRepository.findOne({
       where: { userId: userData.userId },

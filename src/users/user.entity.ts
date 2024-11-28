@@ -28,4 +28,7 @@ export class User {
 
   @Column({ default: 36.5 })
   public temperature: number;
+
+  @Column({ default: '' })
+  public purchaseQrUrl: string;
 }

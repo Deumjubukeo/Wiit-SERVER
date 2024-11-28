@@ -44,11 +44,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async joinRoom(client: Socket, payload: { chatId: number; userId: string }) {
     console.log('Join event received:', payload);
     try {
-      // userId가 'test2'인 경우의 특별 처리
-      if(payload.userId === 'test2') {
-        console.log('Test2 user joining room:', payload.chatId);
-      }
-
       const chat = await this.chatService.getChatById(payload.chatId);
       console.log('Found chat:', chat?.id);
 
@@ -103,7 +98,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client: Socket,
     payload: {
       chatId: number;
-      senderId: string;  // string 타입 유지
+      senderId: string;
       content: string;
       type: MessageType;
     },

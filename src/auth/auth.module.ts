@@ -1,17 +1,19 @@
-import { forwardRef, Module } from "@nestjs/common";
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
-import { PassportModule } from "@nestjs/passport";
+import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategy/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { AuthGuard } from "./guard/auth.guard";
+import { AuthGuard } from './guard/auth.guard';
+import { QrCodeModule } from '../qrCode/qrCode.module';
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
+    forwardRef(() => QrCodeModule),
     PassportModule,
     ConfigModule,
     JwtModule.registerAsync({
