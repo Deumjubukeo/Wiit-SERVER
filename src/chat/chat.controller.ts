@@ -12,7 +12,7 @@ import { AuthGuard } from '../auth/guard/auth.guard';
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiOperation,
+  ApiOperation, ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -26,11 +26,6 @@ export class ChatController {
 
   @Post()
   @ApiBearerAuth('access-token')
-  @ApiOperation({
-    summary: '채팅방 생성',
-    description:
-      '특정 분실물에 대한 채팅방을 생성합니다. 이미 존재하는 채팅방이 있다면 해당 채팅방을 반환합니다.',
-  })
   @ApiBody({
     type: CreateChattingRoomDTO,
     description: '채팅방 생성을 위한 분실물 ID',
@@ -101,7 +96,7 @@ export class ChatController {
   @ApiOperation({
     summary: '채팅 메시지 조회',
   })
-  @ApiQuery({
+  @ApiParam({
     name: 'chatId',
     type: Number,
     description: '조회할 채팅방 ID',
@@ -153,7 +148,7 @@ export class ChatController {
 
   @Get()
   @ApiOperation({
-    summary: '채팅방 목록 조회',
+    summary: '유저 토큰 내에서 채팅방 목록 조회',
   })
   @ApiResponse({
     status: 200,
