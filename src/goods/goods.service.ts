@@ -31,7 +31,6 @@ export class GoodsService {
     file: Express.Multer.File,
   ): Promise<Goods> {
     try {
-      // 관리자 권한 확인
       if (!user) {
         throw new UnauthorizedException('관리자만 상품을 생성할 수 있습니다.');
       }

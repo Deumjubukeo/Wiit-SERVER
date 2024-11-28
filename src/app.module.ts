@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,6 +12,9 @@ import { LostStuff } from './lostStuff/lostStuff.entity';
 import { Chat } from './chat/chat.entity';
 import { Message } from './chat/message.entity';
 import { GoodsModule } from './goods/goods.module';
+import { QrCodeService } from './qrCode/qrCode.service';
+import { QrCodeModule } from './qrCode/qrCode.module';
+import { AwsModule } from './aws/aws.module';
 
 @Module({
   imports: [
@@ -49,12 +52,14 @@ import { GoodsModule } from './goods/goods.module';
     LostStuffModule,
     ChatModule,
     GoodsModule,
+    AwsModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME },
     }),
+    QrCodeModule,
   ],
-  providers: [],
+  providers: [QrCodeService],
   controllers: [],
 })
 export class AppModule {}

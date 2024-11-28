@@ -53,6 +53,7 @@ export class GoodsController {
   ): Promise<Goods> {
     return this.goodsService.purchaseGoods(id, userId);
   }
+
   //인기 상품 불러오기
   @Get('popular')
   @ApiOperation({ summary: '인기 상품 목록 조회' })

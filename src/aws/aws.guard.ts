@@ -14,13 +14,7 @@ export class AwsGuard {
 
       const ext = path.extname(file.originalname).slice(1);
       const fileName = `${Date.now()}_${file.originalname}`;
-      const imageUrl = await this.awsService.imageUploadToS3(
-        fileName,
-        file,
-        ext,
-      );
-
-      return imageUrl;
+      return await this.awsService.imageUploadToS3(fileName, file, ext);
     } catch (error) {
       console.log(error);
       throw new Error('이미지 업로드 중 오류가 발생했습니다.');

@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import RegisterDto from './dto/register.dto';
 import TokenPayload from './tokenPayload.interface';
+import { QrCodeService } from '../qrCode/qrCode.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly qrCodeService: QrCodeService,
   ) {}
 
   public async register(registrationData: RegisterDto) {
@@ -25,8 +27,14 @@ export class AuthService {
       const createdUser = await this.usersService.create({
         ...registrationData,
         password: hashedPassword,
-        imageUrl: registrationData.imageUrl ? registrationData.imageUrl : '',
+        imageUrl: registrationData.imageUrl || '',
       });
+
+      const qrCodeUrl = await this.qrCodeService.generateAndUploadQrCode(
+        createdUser.id,
+      );
+      await this.usersService.updatePurchaseQrUrl(createdUser.id, qrCodeUrl);
+
       createdUser.password = undefined;
       return createdUser;
     } catch (e) {
@@ -44,6 +52,7 @@ export class AuthService {
       await this.verifyPassword(plainTextPassword, user.password);
       user.password = undefined;
       return user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       throw new HttpException(
         '잘못된 인증 정보입니다.',
@@ -56,7 +65,10 @@ export class AuthService {
     plainTextPassword: string,
     hashedPassword: string,
   ) {
-    const isPasswordMatching = await bcrypt.compare(plainTextPassword, hashedPassword);
+    const isPasswordMatching = await bcrypt.compare(
+      plainTextPassword,
+      hashedPassword,
+    );
     if (!isPasswordMatching) {
       throw new HttpException(
         '잘못된 인증 정보입니다.',

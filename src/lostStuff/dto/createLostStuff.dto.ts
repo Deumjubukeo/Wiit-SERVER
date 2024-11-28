@@ -1,6 +1,6 @@
 export class CreateLostStuffDto {
   name: string;
   description: string;
-  where: string;
+  region: string;
   imageUrl: string;
 }

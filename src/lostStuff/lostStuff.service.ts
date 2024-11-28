@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, HttpException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LostStuff } from './lostStuff.entity';
@@ -77,12 +77,32 @@ export class LostStuffService {
   async update(
     id: number,
     updateLostStuffDto: UpdateLostStuffDto,
+    userId: number,
   ): Promise<LostStuff> {
+    const lostStuff = await this.findOne(id);
+
+    if (lostStuff.createUser.id !== userId) {
+      throw new ForbiddenException(
+        'You are not authorized to update this item',
+      );
+    }
+
     await this.lostStuffRepository.update(id, updateLostStuffDto);
     return this.findOne(id);
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(
+    id: number,
+    userId: number
+  ): Promise<void> {
+    const lostStuff = await this.findOne(id);
+
+    if (lostStuff.createUser.id !== userId) {
+      throw new ForbiddenException(
+        'You are not authorized to delete this item',
+      );
+    }
+
     await this.lostStuffRepository.delete(id);
   }
 }
