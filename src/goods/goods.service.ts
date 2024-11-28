@@ -12,6 +12,7 @@ import { CreateGoodsDto } from './dto/createGoods.dto';
 import { User } from '../users/user.entity';
 import * as path from 'node:path';
 import { AwsService } from '../aws/aws.service';
+import { AwsGuard } from '../aws/aws.guard';
 
 @Injectable()
 export class GoodsService {
@@ -20,34 +21,25 @@ export class GoodsService {
     private goodsRepository: Repository<Goods>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private readonly awsService: AwsService,
+    private readonly awsGuard: AwsGuard,
   ) {}
 
   // 상품 생성
   async createGoods(
     createGoodsDto: CreateGoodsDto,
     user: User,
-    file: Express.Multer.File, // 파일 추가
+    file: Express.Multer.File,
   ): Promise<Goods> {
     try {
       // 관리자 권한 확인
       if (!user) {
         throw new UnauthorizedException('관리자만 상품을 생성할 수 있습니다.');
       }
+      const imageUrl = await this.awsGuard.uploadImage(file);
 
-      // 이미지 업로드
-      const ext = path.extname(file.originalname).slice(1); // 확장자 추출
-      const fileName = `${Date.now()}_${file.originalname}`; // 파일 이름 생성
-      const imageUrl = await this.awsService.imageUploadToS3(
-        fileName,
-        file,
-        ext,
-      ); // S3에 이미지 업로드
-
-      // 상품 생성
       const goods = this.goodsRepository.create({
         ...createGoodsDto,
-        imageUrl, // S3에서 받은 URL 저장
+        imageUrl,
       });
 
       return this.goodsRepository.save(goods);
