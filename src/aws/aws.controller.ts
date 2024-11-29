@@ -40,7 +40,7 @@ export class AwsController {
     const fileName = `${Date.now()}-${file.originalname}`;
 
     const ext = file.originalname.split('.').pop().toLowerCase();
-
+    console.log(ext);
     try {
       const uploadedFileUrl = await this.awsService.imageUploadToS3(
         fileName,
