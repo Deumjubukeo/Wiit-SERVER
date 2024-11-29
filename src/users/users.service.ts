@@ -74,10 +74,7 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
   ): Promise<User | string> {
     const user = await this.findOne(id, false, true);
-    console.log(user,"FFFF");
-    console.log(user);
     if (!user) {
-      console.log(user,"QFQF");
       throw new HttpException(
         '해당 유저가 존재하지 않습니다.',
         HttpStatus.BAD_REQUEST,
