@@ -74,7 +74,6 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
   ): Promise<User | string> {
     const user = await this.findOne(id, false, true);
-
     if (!user) {
       throw new HttpException(
         '해당 유저가 존재하지 않습니다.',
@@ -82,14 +81,15 @@ export class UsersService {
       );
     }
 
-    // 이미지 URL만 업데이트
     if (updateUserDto.imageUrl) {
       user.imageUrl = updateUserDto.imageUrl;
     }
 
     await this.usersRepository.update(id, { imageUrl: updateUserDto.imageUrl });
 
-    return this.findOne(id); // 업데이트된 유저 정보를 반환
+    await this.usersRepository.save(user);
+
+    return this.findOne(id, false, true);
   }
 
   async update(

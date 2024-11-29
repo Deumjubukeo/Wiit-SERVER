@@ -94,6 +94,7 @@ export class UsersController {
       updateUserDto.imageUrl = file.path;
     }
 
+    console.log(request.user.id);
     return this.usersService.updateProfileImage(request.user.id, updateUserDto);
   }
 
