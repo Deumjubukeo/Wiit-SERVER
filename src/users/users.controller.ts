@@ -140,14 +140,10 @@ export class UsersController {
     });
     return {
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        point: user.point,
-        temperature: user.temperature,
-        imageUrl: user.imageUrl,
+        ...user,
+        password: '',
       },
-      mylostStuff: lostStuff.filter((item) => item.createUser.id === user.id),
+      myLostStuff: lostStuff.filter((item) => item.createUser.id === user.id),
     };
   }
 }
