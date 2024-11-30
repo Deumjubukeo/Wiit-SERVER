@@ -8,12 +8,16 @@ import {
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { MessageType } from './message.entity';
+import { UsersService } from '../users/users.service';
 
 @WebSocketGateway({
   cors: { origin: '*' },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -134,7 +138,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('quit')
-  async quitRoom(client: Socket, payload: { chatId: number; userId: string }) {
+  async quitRoom(
+    client: Socket,
+    payload: {
+      chatId: number;
+      userId: string;
+      point: number;
+    },
+  ) {
     try {
       const chat = await this.chatService.getChatById(payload.chatId);
 
@@ -146,15 +157,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
+      const pointMap = {
+        1: 50,
+        2: 100,
+        3: 150,
+        4: 200,
+      };
+
+      const pointToAdd = pointMap[payload.point];
+
+      if (pointToAdd === undefined) {
+        client.emit('error', {
+          message: '유효하지 않은 포인트 값입니다.',
+        });
+        return;
+      }
+
+      if (chat.writer) {
+        await this.usersService.updatePoint(
+          chat.writer.id.toString(),
+          pointToAdd,
+        );
+      }
+
       chat.isEnded = true;
       chat.currentUsers = [];
       await this.chatService.updateChat(chat);
 
       this.server.to(payload.chatId.toString()).emit('chatEnded', {
         message: '채팅이 종료되었습니다.',
+        pointAdded: pointToAdd, // Optionally send point info to clients
       });
+
       client.leave(payload.chatId.toString());
     } catch (error) {
+      console.error('Error in quitRoom:', error);
       client.emit('error', { message: error.message });
     }
   }

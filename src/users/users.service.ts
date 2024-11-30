@@ -92,6 +92,39 @@ export class UsersService {
     return this.findOne(id, false, true);
   }
 
+  async updatePoint(id: string, point: number): Promise<User | string> {
+    const user = await this.findOne(id, false, true);
+    if (!user) {
+      throw new HttpException(
+        '해당 유저가 존재하지 않습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const sumPoint = point + user.point;
+
+    await this.usersRepository.update(id, { point: sumPoint });
+
+    await this.usersRepository.save(user);
+
+    return this.findOne(id, false, true);
+  }
+
+  async delete(id: string): Promise<User> {
+    const user = await this.findOne(id, false, true);
+
+    if (!user) {
+      throw new HttpException(
+        '해당 유저가 존재하지 않습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.usersRepository.delete(id);
+
+    return user;
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
