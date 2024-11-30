@@ -11,7 +11,6 @@ import {
   Delete,
   HttpCode,
   Param,
-  UploadedFile,
 } from '@nestjs/common';
 import { GoodsService } from './goods.service';
 import { CreateGoodsDto } from './dto/createGoods.dto';
@@ -33,12 +32,10 @@ export class GoodsController {
     @Body() createGoodsDto: CreateGoodsDto,
     @Req() request,
     @Res() response: Response,
-    @UploadedFile() file: Express.Multer.File,
   ) {
     const newGoods = await this.goodsService.createGoods(
       createGoodsDto,
       request.user,
-      file,
     );
     return response.status(201).json(newGoods);
   }

@@ -28,17 +28,13 @@ export class GoodsService {
   async createGoods(
     createGoodsDto: CreateGoodsDto,
     user: User,
-    file: Express.Multer.File,
   ): Promise<Goods> {
     try {
       if (!user) {
         throw new UnauthorizedException('관리자만 상품을 생성할 수 있습니다.');
       }
-      const imageUrl = await this.awsGuard.uploadImage(file);
-
       const goods = this.goodsRepository.create({
         ...createGoodsDto,
-        imageUrl,
       });
 
       return this.goodsRepository.save(goods);
