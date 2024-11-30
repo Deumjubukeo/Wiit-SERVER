@@ -1,6 +1,6 @@
 import {
   Body,
-  Controller,
+  Controller, Delete,
   Get,
   Patch,
   Query,
@@ -96,6 +96,12 @@ export class UsersController {
 
     console.log(request.user.id);
     return this.usersService.updateProfileImage(request.user.id, updateUserDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete()
+  async delete(@Req() request) {
+    return this.usersService.delete(request.user.id);
   }
 
   @UseGuards(AuthGuard)
