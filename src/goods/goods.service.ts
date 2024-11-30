@@ -51,7 +51,7 @@ export class GoodsService {
         throw new NotFoundException('상품을 찾을 수 없습니다.');
       }
       const user = await this.userRepository.findOne({
-        where: { userId: userId },
+        where: { id: Number(userId) },
       });
       if (!user) {
         throw new NotFoundException('사용자를 찾을 수 없습니다.');
