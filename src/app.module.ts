@@ -15,6 +15,10 @@ import { GoodsModule } from './goods/goods.module';
 import { QrCodeService } from './qrCode/qrCode.service';
 import { QrCodeModule } from './qrCode/qrCode.module';
 import { AwsModule } from './aws/aws.module';
+import { FavoriteService } from './favorite/favorite.service';
+import { FavoriteController } from './favorite/favorite.controller';
+import { FavoriteModule } from './favorite/favorite.module';
+import { Favorite } from './favorite/favorite.entity';
 
 @Module({
   imports: [
@@ -38,7 +42,7 @@ import { AwsModule } from './aws/aws.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User, LostStuff, Chat, Message],
+      entities: [User, LostStuff, Chat, Message, Favorite],
       synchronize: true,
       // logging: true,
       charset: 'utf8mb4',
@@ -58,8 +62,7 @@ import { AwsModule } from './aws/aws.module';
       signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME },
     }),
     QrCodeModule,
+    FavoriteModule,
   ],
-  providers: [QrCodeService],
-  controllers: [],
 })
 export class AppModule {}

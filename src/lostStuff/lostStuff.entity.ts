@@ -4,9 +4,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
+  JoinColumn, OneToMany,
 } from 'typeorm';
 import { User } from '../users/user.entity';
+import { Favorite } from '../favorite/favorite.entity';
 
 @Entity()
 export class LostStuff {
@@ -31,4 +32,7 @@ export class LostStuff {
 
   @Column()
   imageUrl: string;
+
+  @OneToMany(() => Favorite, (favorite) => favorite.lostStuff)
+  favorites: Favorite[];
 }
