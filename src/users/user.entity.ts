@@ -24,7 +24,7 @@ export class User {
   @Column()
   public imageUrl: string;
 
-  @Column({ default: 0 })
+  @Column({ default: 1000 })
   public point: number;
 
   @Column({ default: 36.5 })

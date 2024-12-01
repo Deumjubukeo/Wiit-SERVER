@@ -45,28 +45,23 @@ export class GoodsService {
   }
   // 상품 구매
   async purchaseGoods(id: number, userId: string): Promise<Goods> {
-    try {
-      const goods = await this.goodsRepository.findOne({ where: { id } });
-      if (!goods) {
-        throw new NotFoundException('상품을 찾을 수 없습니다.');
-      }
-      const user = await this.userService.findOne(userId, false, true);
-      if (!user) {
-        throw new NotFoundException('사용자를 찾을 수 없습니다.');
-      }
-      if (user.point < goods.price) {
-        throw new UnauthorizedException('포인트가 부족합니다.');
-      }
-      goods.purchaseCount += 1;
-
-      await this.userService.updatePoint(userId, -goods.price);
-
-      // await
-      return this.goodsRepository.save(goods);
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(`${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    const goods = await this.goodsRepository.findOne({ where: { id } });
+    if (!goods) {
+      throw new NotFoundException('상품을 찾을 수 없습니다.');
     }
+    const user = await this.userService.findOne(userId, false, true);
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+    if (user.point < goods.price) {
+      throw new UnauthorizedException('포인트가 부족합니다.');
+    }
+    goods.purchaseCount += 1;
+
+    await this.userService.updatePoint(userId, -goods.price);
+
+    // await
+    return this.goodsRepository.save(goods);
   }
   //인기상품
   async getPopularGoods(

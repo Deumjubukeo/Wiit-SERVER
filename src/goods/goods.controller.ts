@@ -45,6 +45,7 @@ export class GoodsController {
   @ApiOperation({ summary: '상품 구매' })
   @ApiResponse({ status: 200, description: '상품 구매 성공', type: Goods })
   async purchaseGoods(
+    @Body() createGoodsDto: CreateGoodsDto,
     @Query('id', ParseIntPipe) id: number,
     @Query('userId') userId: string,
   ): Promise<Goods> {
