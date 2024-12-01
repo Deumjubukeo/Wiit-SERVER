@@ -13,14 +13,14 @@ import { User } from '../users/user.entity';
 import * as path from 'node:path';
 import { AwsService } from '../aws/aws.service';
 import { AwsGuard } from '../aws/aws.guard';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class GoodsService {
   constructor(
     @InjectRepository(Goods)
     private goodsRepository: Repository<Goods>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userService: UsersService,
     private readonly awsGuard: AwsGuard,
   ) {}
 
@@ -50,20 +50,18 @@ export class GoodsService {
       if (!goods) {
         throw new NotFoundException('상품을 찾을 수 없습니다.');
       }
-      const user = await this.userRepository.findOne({
-        where: { id: Number(userId) },
-      });
+      const user = await this.userService.findOne(userId, false, true);
       if (!user) {
         throw new NotFoundException('사용자를 찾을 수 없습니다.');
       }
       if (user.point < goods.price) {
         throw new UnauthorizedException('포인트가 부족합니다.');
       }
-
-      user.point -= goods.price;
       goods.purchaseCount += 1;
 
-      await this.userRepository.save(user);
+      await this.userService.updatePoint(userId, -goods.price);
+
+      // await
       return this.goodsRepository.save(goods);
     } catch (error) {
       console.log(error);

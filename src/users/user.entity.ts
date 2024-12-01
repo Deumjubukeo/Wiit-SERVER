@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Favorite } from '../favorite/favorite.entity';
 
 @Entity()
 export class User {
@@ -31,4 +32,7 @@ export class User {
 
   @Column({ default: '' })
   public purchaseQrUrl: string;
+
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorites: Favorite[];
 }

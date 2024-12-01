@@ -158,10 +158,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const pointMap = {
-        1: 50,
+        1: 0,
         2: 100,
         3: 150,
         4: 200,
+      };
+
+      const tempMap = {
+        1: -2,
+        2: 0,
+        3: 1,
+        4: 2,
       };
 
       const pointToAdd = pointMap[payload.point];
@@ -173,10 +180,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
+      const tempToAdd = tempMap[payload.point];
+
+      if (tempToAdd === undefined) {
+        client.emit('error', {
+          message: '유효하지 않은 포인트 값입니다.',
+        });
+        return;
+      }
+
       if (chat.writer) {
         await this.usersService.updatePoint(
           chat.writer.id.toString(),
           pointToAdd,
+        );
+        await this.usersService.updateTemp(
+          chat.writer.id.toString(),
+          tempToAdd,
         );
       }
 

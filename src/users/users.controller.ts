@@ -2,7 +2,7 @@ import {
   Body,
   Controller, Delete,
   Get,
-  Patch,
+  Patch, Post, Put,
   Query,
   Req,
   UploadedFile,
@@ -17,6 +17,7 @@ import { LostStuffService } from '../lostStuff/lostStuff.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
+import { Point } from 'typeorm';
 
 @ApiTags('User')
 @Controller('users')
@@ -145,5 +146,19 @@ export class UsersController {
       },
       myLostStuff: lostStuff.filter((item) => item.createUser.id === user.id),
     };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/point')
+  async setPoint(@Body() { point }, @Req() request) {
+    console.log(point);
+    return this.usersService.updatePoint(request.user.id, point);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/tep')
+  async setTemp(@Body() { point }, @Req() request) {
+    console.log(point);
+    return this.usersService.updateTemp(request.user.id, point);
   }
 }

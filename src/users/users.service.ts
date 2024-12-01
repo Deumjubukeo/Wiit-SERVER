@@ -101,10 +101,34 @@ export class UsersService {
       );
     }
 
-    const sumPoint = point + user.point;
+    let sumPoint = point + user.point;
 
-    await this.usersRepository.update(id, { point: sumPoint });
+    if (sumPoint < 0) {
+      sumPoint = 0;
+    }
 
+    user.point = sumPoint;
+    await this.usersRepository.save(user);
+
+    return this.findOne(id, false, true);
+  }
+
+  async updateTemp(id: string, temp: number): Promise<User | string> {
+    const user = await this.findOne(id, false, true);
+    if (!user) {
+      throw new HttpException(
+        '해당 유저가 존재하지 않습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    let sumTemp = temp + user.temperature;
+
+    if (sumTemp < 0) {
+      sumTemp = 0;
+    }
+
+    user.temperature = sumTemp;
     await this.usersRepository.save(user);
 
     return this.findOne(id, false, true);
